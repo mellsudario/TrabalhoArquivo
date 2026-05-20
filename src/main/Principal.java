@@ -1,14 +1,24 @@
 package main;
 
-import java.util.Scanner;
+import interfacegrafica.Painel;
+
+import javax.swing.*;
 import java.util.ArrayList;
 import java.io.*;
+
 import classes.GeradorBoletim;
 
 public class Principal {
-
 	public static void main(String args[]) {
-		Scanner teclado = new Scanner(System.in);
+
+		JFrame frame = new JFrame("Sistema do Professor");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setSize(1000, 700);
+		frame.setLocationRelativeTo(null);
+		frame.setResizable(false);
+		Painel painel = new Painel();
+		frame.add(painel);
+		frame.setVisible(true);
 		File sistema = new File("sistemaDoProfessor");
 		if (!sistema.exists()) {
 			sistema.mkdir();
@@ -16,53 +26,43 @@ public class Principal {
 
 		int opcao = 0;
 		while (opcao != 4) {
-			opcao = menu(teclado, opcao);
+			painel.menu();
+			opcao = Integer.parseInt(JOptionPane.showInputDialog("Escolha uma opção:"));
 			switch (opcao) {
 			case 1:
-				criarArquivo(teclado, sistema);
+				criarArquivo(sistema, painel);
 				break;
 
 			case 2:
-				gerarResultado(teclado, sistema);
+				gerarResultado(sistema);
 				break;
 
 			case 3:
 				GeradorBoletim.gerarBoletins(sistema);
-				System.out.println("Boletins gerados com sucesso!");
+				JOptionPane.showMessageDialog(null, "Boletins gerados com sucesso!");
 				break;
 
 			case 4:
-				System.out.println("Saindo...");
+				JOptionPane.showMessageDialog(null, "Saindo...");
 				break;
 
 			default:
-				System.out.println("Opção inválida!");
-				break;
+				JOptionPane.showMessageDialog(null, "Opção inválida!");
 			}
 		}
-		teclado.close();
-	}
-	private static int menu(Scanner teclado, int opcao) {
 
-		System.out.println();
-		System.out.println("Escolha uma das opções abaixo:");
-		System.out.println("1 - Criar arquivo de respostas dos alunos");
-		System.out.println("2 - Gerar resultado de uma disciplina");
-		System.out.println("3 - Gerar boletins");
-		System.out.println("4 - Sair");
-		System.out.println();
-
-		opcao = teclado.nextInt();
-		return opcao;
+		System.exit(0);
 	}
 
-	private static void criarArquivo(Scanner teclado, File sistema) {
-		teclado.nextLine();
+	private static void criarArquivo(File sistema, Painel painel) {
 		boolean temMaisAluno = true;
-		System.out.println("Insira o nome da disciplina:");
-		String nomeDisciplina = teclado.nextLine();
+		String nomeDisciplina = JOptionPane.showInputDialog("Nome da disciplina:");
+		if (nomeDisciplina == null) {
+			return;
+		}
+
 		File notas = new File(sistema, nomeDisciplina + ".txt");
-		File pastaDisciplina = new File(nomeDisciplina);
+		File pastaDisciplina = new File(sistema, nomeDisciplina);
 
 		try {
 			if (!pastaDisciplina.exists()) {
@@ -71,78 +71,51 @@ public class Principal {
 			if (!notas.exists()) {
 				notas.createNewFile();
 			}
-
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
+			painel.exibirMensagem(e.getMessage());
 			return;
 		}
 
 		try (BufferedWriter notasWrite = new BufferedWriter(new FileWriter(notas, true))) {
-
 			while (temMaisAluno) {
-				System.out.println();
-				System.out.println("Insira as informações do aluno:");
-				System.out.println("Nome:");
-				String nome = teclado.nextLine();
-				System.out.println("Respostas:");
-				String respostas = teclado.nextLine();
+				String nome = JOptionPane.showInputDialog("Nome do aluno:");
+				if (nome == null) {
+					return;
+				}
+
+				String respostas = JOptionPane.showInputDialog("Digite as 10 respostas:");
+				if (respostas == null) {
+					return;
+				}
 				notasWrite.write(respostas + "\t" + nome);
 				notasWrite.newLine();
-				int opcao = 0;
-				while (opcao != 1 && opcao != 2) {
-					System.out.println();
-					System.out.println("Gostaria de inserir mais alunos?");
-					System.out.println("(1-Sim, 2-Não)");
-					opcao = teclado.nextInt();
-					teclado.nextLine();
-					switch (opcao) {
-					case 1:
-						break;
-					case 2:
-						temMaisAluno = false;
-						break;
+				int opcao = JOptionPane.showConfirmDialog(null, "Deseja adicionar outro aluno?", "Continuar",
+						JOptionPane.YES_NO_OPTION);
 
-					default:
-						System.out.println("Opção inválida!");
-						break;
-					}
+				if (opcao != JOptionPane.YES_OPTION) {
+					temMaisAluno = false;
 				}
 			}
 
 		} catch (IOException e) {
-
 			e.printStackTrace();
-
 			return;
 		}
 
-		System.out.println();
-		System.out.println("Gostaria de adicionar outra disciplina?");
-
-		while (true) {
-			System.out.println("(1-Sim, 2-Não)");
-			int opcao = teclado.nextInt();
-			teclado.nextLine();
-			switch (opcao) {
-			case 1:
-				criarArquivo(teclado, sistema);
-				return;
-
-			case 2:
-				return;
-
-			default:
-				System.out.println("Opção inválida!");
-			}
-		}
+		JOptionPane.showMessageDialog(null, "Disciplina criada com sucesso!");
 	}
 
-	private static void gerarResultado(Scanner teclado, File sistema) {
-		teclado.nextLine();
-		System.out.println("Informe o nome da disciplina:");
-		String nomeDisciplina = teclado.nextLine();
-		System.out.println("Insira o caminho do gabarito oficial:");
-		String caminhoGabarito = teclado.nextLine();
+	private static void gerarResultado(File sistema) {
+		String nomeDisciplina = JOptionPane.showInputDialog("Nome da disciplina:");
+		if (nomeDisciplina == null) {
+			return;
+		}
+
+		String caminhoGabarito = JOptionPane.showInputDialog("Digite o caminho do gabarito:");
+		if (caminhoGabarito == null) {
+			return;
+		}
+
 		ArrayList<String> dadosAlunos = new ArrayList<>();
 		File arquivoDisciplina = new File(sistema, nomeDisciplina + ".txt");
 		try (BufferedReader disciplina = new BufferedReader(new FileReader(arquivoDisciplina))) {
@@ -150,26 +123,23 @@ public class Principal {
 			while ((linha = disciplina.readLine()) != null) {
 				dadosAlunos.add(linha);
 			}
-		} catch (FileNotFoundException e) {
-			System.out.println("Disciplina não encontrada!");
-			return;
+
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
+			JOptionPane.showMessageDialog(null, "Disciplina não encontrada!");
 			return;
 		}
+
 		try (BufferedReader arqGabarito = new BufferedReader(new FileReader(caminhoGabarito))) {
 			String gabarito = arqGabarito.readLine();
 			if (gabarito != null) {
 				gabarito = gabarito.toUpperCase();
 				listaOrdemAlfabetica(gabarito, dadosAlunos, nomeDisciplina);
 				listaOrdemDecrescente(gabarito, dadosAlunos, nomeDisciplina);
+				JOptionPane.showMessageDialog(null, "Resultados gerados com sucesso!");
 			}
-		} catch (FileNotFoundException e) {
-			System.out.println("Gabarito não encontrado!");
-			return;
+
 		} catch (IOException e) {
-			e.printStackTrace();
-			return;
+			JOptionPane.showMessageDialog(null, "Gabarito não encontrado!");
 		}
 	}
 
@@ -180,10 +150,9 @@ public class Principal {
 			return nome1.compareTo(nome2);
 		});
 
-		File listaAlfabetica = new File(nomeDisciplina, nomeDisciplina + "_listaAlfabetica.txt");
+		File pastaDisciplina = new File("sistemaDoProfessor/" + nomeDisciplina);
+		File listaAlfabetica = new File(pastaDisciplina, nomeDisciplina + "_listaAlfabetica.txt");
 		try (BufferedWriter lista = new BufferedWriter(new FileWriter(listaAlfabetica))) {
-			System.out.println();
-			System.out.println("===== ORDEM ALFABÉTICA =====");
 
 			for (String aluno : dadosAlunos) {
 				String[] linha = aluno.split("\t");
@@ -191,11 +160,10 @@ public class Principal {
 				int nota = avaliarAluno(gabarito, aluno);
 				lista.write(nome + "\t" + nota);
 				lista.newLine();
-				System.out.println(nome + " - " + nota);
 			}
+
 		} catch (IOException e) {
 			e.printStackTrace();
-			return;
 		}
 	}
 
@@ -205,39 +173,27 @@ public class Principal {
 			media += avaliarAluno(gabarito, aluno);
 		}
 		media = media / dadosAlunos.size();
-		dadosAlunos.sort((a1, a2) -> Integer.compare(avaliarAluno(gabarito, a2),
-				avaliarAluno(gabarito, a1)));
-		File listaDecrescente = new File(nomeDisciplina, nomeDisciplina + "_listaNotasDecrescente.txt");
-
+		dadosAlunos.sort((a1, a2) -> Integer.compare(avaliarAluno(gabarito, a2), avaliarAluno(gabarito, a1)));
+		File pastaDisciplina = new File("sistemaDoProfessor/" + nomeDisciplina);
+		File listaDecrescente = new File(pastaDisciplina, nomeDisciplina + "_listaNotasDecrescente.txt");
 		try (BufferedWriter lista = new BufferedWriter(new FileWriter(listaDecrescente))) {
-			System.out.println();
-			System.out.println("===== ORDEM DECRESCENTE =====");
-
 			for (String aluno : dadosAlunos) {
 				String[] linha = aluno.split("\t");
 				lista.write(linha[1] + "\t" + avaliarAluno(gabarito, aluno));
 				lista.newLine();
-				System.out.println(linha[1] + " - " + avaliarAluno(gabarito, aluno));
 			}
 			lista.write("Média da Turma: " + media);
-
-			System.out.println();
-			System.out.println("Média da Turma: " + media);
-
 		} catch (IOException e) {
 			e.printStackTrace();
-			return;
 		}
 	}
 
 	private static int avaliarAluno(String gabarito, String aluno) {
 		String[] dados = aluno.split("\t");
 		String respostas = dados[0].toUpperCase();
-
 		int nota = 0;
 		int f = 0;
 		int v = 0;
-
 		for (int i = 0; i < gabarito.length(); i++) {
 			if (gabarito.charAt(i) == respostas.charAt(i)) {
 				nota++;
