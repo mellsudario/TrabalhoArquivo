@@ -1,12 +1,14 @@
 package main;
 
 import interfacegrafica.Painel;
+import classes.GeradorBoletim;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+
 import java.util.ArrayList;
 import java.io.*;
 
-import classes.GeradorBoletim;
 
 public class Principal {
 	public static void main(String args[]) {
@@ -27,27 +29,31 @@ public class Principal {
 		int opcao = 0;
 		while (opcao != 4) {
 			painel.menu();
-			opcao = Integer.parseInt(JOptionPane.showInputDialog("Escolha uma opção:"));
+			try{
+				opcao = Integer.parseInt(JOptionPane.showInputDialog("Escolha uma opção:"));
+			}catch(Exception e){
+				System.exit(0);
+			}
 			switch (opcao) {
 			case 1:
 				criarArquivo(sistema, painel);
 				break;
 
 			case 2:
-				gerarResultado(sistema);
+				gerarResultado(sistema,painel);
 				break;
 
 			case 3:
-				GeradorBoletim.gerarBoletins(sistema);
-				JOptionPane.showMessageDialog(null, "Boletins gerados com sucesso!");
+				GeradorBoletim.gerarBoletins(sistema, painel);
+				painel.exibirMensagem("Boletins gerados com sucesso!",1500);
 				break;
 
 			case 4:
-				JOptionPane.showMessageDialog(null, "Saindo...");
+				painel.exibirMensagem("Saindo...",1500);
 				break;
 
 			default:
-				JOptionPane.showMessageDialog(null, "Opção inválida!");
+				painel.exibirMensagem("Opção inválida!",1500);
 			}
 		}
 
@@ -61,8 +67,8 @@ public class Principal {
 			return;
 		}
 
-		File notas = new File(sistema, nomeDisciplina + ".txt");
-		File pastaDisciplina = new File(sistema, nomeDisciplina);
+		File pastaDisciplina = new File(sistema,nomeDisciplina);
+		File notas = new File(pastaDisciplina, nomeDisciplina + ".txt");
 
 		try {
 			if (!pastaDisciplina.exists()) {
@@ -72,7 +78,7 @@ public class Principal {
 				notas.createNewFile();
 			}
 		} catch (IOException e) {
-			painel.exibirMensagem(e.getMessage());
+			painel.exibirMensagem(e.getMessage(),1500);
 			return;
 		}
 
@@ -103,9 +109,21 @@ public class Principal {
 		}
 
 		JOptionPane.showMessageDialog(null, "Disciplina criada com sucesso!");
+
+	
+		
+		while (true) {
+			int opcao = JOptionPane.showConfirmDialog(null, "Deseja adicionar outro disciplina?", "Continuar",
+							JOptionPane.YES_NO_OPTION);
+	
+			if (opcao == JOptionPane.YES_OPTION) {
+				criarArquivo(sistema,painel);
+			}
+			return;
+		}
 	}
 
-	private static void gerarResultado(File sistema) {
+	private static void gerarResultado(File sistema, Painel painel) {
 		String nomeDisciplina = JOptionPane.showInputDialog("Nome da disciplina:");
 		if (nomeDisciplina == null) {
 			return;
@@ -117,15 +135,18 @@ public class Principal {
 		}
 
 		ArrayList<String> dadosAlunos = new ArrayList<>();
-		File arquivoDisciplina = new File(sistema, nomeDisciplina + ".txt");
+		File pastaDisciplina = new File(sistema, nomeDisciplina);
+		File arquivoDisciplina = new File(pastaDisciplina, nomeDisciplina + ".txt");
 		try (BufferedReader disciplina = new BufferedReader(new FileReader(arquivoDisciplina))) {
 			String linha;
 			while ((linha = disciplina.readLine()) != null) {
 				dadosAlunos.add(linha);
 			}
-
-		} catch (IOException e) {
+		}catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(null, "Disciplina não encontrada!");
+			return;
+		}catch (IOException e) {
+			JOptionPane.showMessageDialog(null,"Erro!");
 			return;
 		}
 
@@ -133,23 +154,31 @@ public class Principal {
 			String gabarito = arqGabarito.readLine();
 			if (gabarito != null) {
 				gabarito = gabarito.toUpperCase();
-				listaOrdemAlfabetica(gabarito, dadosAlunos, nomeDisciplina);
-				listaOrdemDecrescente(gabarito, dadosAlunos, nomeDisciplina);
+				listaOrdemAlfabetica(gabarito, dadosAlunos, nomeDisciplina,painel);
+				listaOrdemDecrescente(gabarito, dadosAlunos, nomeDisciplina,painel);
 				JOptionPane.showMessageDialog(null, "Resultados gerados com sucesso!");
 			}
 
-		} catch (IOException e) {
+		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(null, "Gabarito não encontrado!");
+		}catch (IOException e) {
+			e.printStackTrace();
+			return;
 		}
+
+
 	}
 
-	private static void listaOrdemAlfabetica(String gabarito, ArrayList<String> dadosAlunos, String nomeDisciplina) {
+	private static void listaOrdemAlfabetica(String gabarito, ArrayList<String> dadosAlunos, String nomeDisciplina,Painel painel) {
 		dadosAlunos.sort((a1, a2) -> {
 			String nome1 = a1.split("\t")[1];
 			String nome2 = a2.split("\t")[1];
 			return nome1.compareTo(nome2);
 		});
 
+		ArrayList <String> listaPainel = new ArrayList<>();
+		listaPainel.add("Lista em ordem alfabética");
+		listaPainel.add("Disciplina: " + nomeDisciplina);
 		File pastaDisciplina = new File("sistemaDoProfessor/" + nomeDisciplina);
 		File listaAlfabetica = new File(pastaDisciplina, nomeDisciplina + "_listaAlfabetica.txt");
 		try (BufferedWriter lista = new BufferedWriter(new FileWriter(listaAlfabetica))) {
@@ -160,30 +189,53 @@ public class Principal {
 				int nota = avaliarAluno(gabarito, aluno);
 				lista.write(nome + "\t" + nota);
 				lista.newLine();
+				listaPainel.add(nome + "    " + nota);
 			}
 
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		painel.setConteudo(listaPainel);
+		try{
+			Thread.sleep(5000);
+		}catch(InterruptedException e){
+			e.printStackTrace();
+		}
 	}
 
-	private static void listaOrdemDecrescente(String gabarito, ArrayList<String> dadosAlunos, String nomeDisciplina) {
+	private static void listaOrdemDecrescente(String gabarito, ArrayList<String> dadosAlunos, String nomeDisciplina, Painel painel) {
 		double media = 0;
 		for (String aluno : dadosAlunos) {
 			media += avaliarAluno(gabarito, aluno);
 		}
 		media = media / dadosAlunos.size();
+		
 		dadosAlunos.sort((a1, a2) -> Integer.compare(avaliarAluno(gabarito, a2), avaliarAluno(gabarito, a1)));
+		
+		ArrayList <String> listaPainel = new ArrayList<>();
+		listaPainel.add("Lista em ordem decrescente de nota");
+		listaPainel.add("Disciplina: " + nomeDisciplina);
 		File pastaDisciplina = new File("sistemaDoProfessor/" + nomeDisciplina);
 		File listaDecrescente = new File(pastaDisciplina, nomeDisciplina + "_listaNotasDecrescente.txt");
+		
 		try (BufferedWriter lista = new BufferedWriter(new FileWriter(listaDecrescente))) {
 			for (String aluno : dadosAlunos) {
 				String[] linha = aluno.split("\t");
 				lista.write(linha[1] + "\t" + avaliarAluno(gabarito, aluno));
 				lista.newLine();
+				listaPainel.add(linha[1] +"    " + avaliarAluno(gabarito, aluno));
 			}
 			lista.write("Média da Turma: " + media);
+			listaPainel.add("Média da Turma: " + media);
 		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+
+		painel.setConteudo(listaPainel);
+		try{
+			Thread.sleep(5000);
+		}catch(InterruptedException e){
 			e.printStackTrace();
 		}
 	}

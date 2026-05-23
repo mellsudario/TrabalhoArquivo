@@ -1,5 +1,12 @@
 package interfacegrafica;
 
+
+import javax.swing.Timer;
+import javax.swing.JDialog;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
@@ -36,8 +43,8 @@ public class Painel extends JPanel {
 		g.drawString(titulo, (largura - larguraTitulo) / 2, 90);
 		for (int i = 0; i < conteudo.size(); i++) {
 			g.setColor(new Color(240, 240, 240));
-			g.setFont(new Font("Arial", Font.BOLD, 28));
-			g.drawString(conteudo.get(i), 120, (i + 2) * altura);
+			g.setFont(new Font("Arial", Font.BOLD, 24));
+			g.drawString(conteudo.get(i), 100, (i + 2) * altura);
 		}
 	}
 
@@ -54,10 +61,31 @@ public class Painel extends JPanel {
 		repaint();
 	}
 
-	public void exibirMensagem(String mensagem) {
+    public void setConteudo(ArrayList <String> conteudo){
+        this.conteudo = conteudo;
+        repaint();
+    }
 
-		conteudo.clear();
-		conteudo.add(mensagem);
-		repaint();
+    public void exibirMensagem(String mensagem, int milissegundos) {
+		// exibir mensagem temporariomente
+		final JOptionPane optionPane = new JOptionPane(mensagem, JOptionPane.INFORMATION_MESSAGE,
+				JOptionPane.DEFAULT_OPTION, null, new Object[] {}, null);
+
+		// Criamos um diálogo a partir desse painel(paniel é modelo visual e dialog é q
+		// consegue fechar a janela quando o timer terminar a contagem)
+		final JDialog dialog = optionPane.createDialog("Aviso");
+
+		// Timer que fecha o diálogo
+		Timer timer = new Timer(milissegundos, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				dialog.dispose(); // Fecha a janela
+			}
+		});
+
+		timer.setRepeats(false); // Garante que o timer rode apenas uma vez
+		timer.start();
+
+		dialog.setVisible(true); // Exibe a janela
 	}
 }
