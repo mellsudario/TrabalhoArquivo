@@ -1,4 +1,4 @@
-## 📚 Sistema do Professor  — POO em Java
+# 📚 Sistema do Professor  — POO em Java
 
 Para gerenciamento de provas objetivas, geração de resultados e boletins de alunos.  
 
