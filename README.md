@@ -1,8 +1,6 @@
 # 📚 Sistema do Professor
 
 Para gerenciamento de provas objetivas, geração de resultados e boletins de alunos.  
-Desenvolvido como 3º Trabalho da 2ª Etapa de Programação Orientada a Objetos.
-
 ---
 
 ## Funcionalidades
