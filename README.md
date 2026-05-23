@@ -36,10 +36,9 @@ Todos os dados ficam dentro da pasta `sistemaDoProfessor/`, criada automaticamen
 ```
 sistemaDoProfessor/
 ├── <Disciplina>/
-│   ├── <Disciplina>.txt                      # Respostas dos alunos
-│   ├── <Disciplina>_listaAlfabetica.txt      # Resultado em ordem alfabética
+│   ├── <Disciplina>.txt                       # Respostas dos alunos
+│   ├── <Disciplina>_listaAlfabetica.txt       # Resultado em ordem alfabética
 │   └── <Disciplina>_listaNotasDecrescente.txt # Resultado por nota + média da turma
 └── boletins/
-    └── <NomeDoAluno>.txt                     # Boletim individual de cada aluno
+    └── <NomeDoAluno>.txt                      # Boletim individual de cada aluno
 ```
-crita de arquivos, ordenação de listas e interface gráfica com Swing.
